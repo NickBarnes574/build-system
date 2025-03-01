@@ -1,6 +1,6 @@
-// Placeholder for project_config.h
-#ifndef PROJECT_CONFIG_H
-#define PROJECT_CONFIG_H
+// Placeholder for project_info.h
+#ifndef PROJECT_INFO_H
+#define PROJECT_INFO_H
 
 #define PROJECT_NAME          ""
 #define PROJECT_VERSION       ""
@@ -13,4 +13,4 @@
 
 void print_project_info();
 
-#endif // PROJECT_CONFIG_H
+#endif // PROJECT_INFO_H

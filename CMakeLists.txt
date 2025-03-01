@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# BRIEF -- CMakeLists.txt for EmuBox
+# BRIEF -- CMakeLists.txt for Build System
 # ----------------------------------------------------------------------------
 # Top-level CMake configuration (C, version 1.0.0).
 #
@@ -13,7 +13,7 @@
 cmake_minimum_required(VERSION 3.22)
 
 project(
-  EmuBox
+  BUILD_SYSTEM
   VERSION 1.0.0
   LANGUAGES C)
 
@@ -30,32 +30,20 @@ set(LIB_NETWORKING  Networking)
 set(LIB_THREADING   Threading)
 
 # Define executable name
-set(EXECUTABLE_ADMIN          admin)
-set(EXECUTABLE_DOWNSTREAM     downstream)
-set(EXECUTABLE_PRETREATMENT   pretreatment)
-set(EXECUTABLE_RESIDENTIAL    residential)
-set(EXECUTABLE_STORMDRAIN     stormdrain)
-set(EXECUTABLE_TREATMENT      treatment)
+set(EXECUTABLE_NAME         my_program)
 
 # Options for enabling various build tools/features
 option(COMPILE_EXECUTABLE "Compile the executable"            ON)
 option(ENABLE_CLANG_TIDY  "Enable clang-tidy static analysis" ON)
 option(ENABLE_WARN_AS_ERR "Treat all warnings as errors"      OFF)
 option(ENABLE_ADSAN       "Enable Address-Sanitizer"          OFF)
+option(STRIP_TARGET       "Strip all symbols from release"    ON)
 # cmake-format: on
 
-# Include additional CMake modules
-include(cmake/color-options.cmake)
-include(cmake/clang-tidy.cmake)
-include(cmake/output-directories.cmake)
-include(cmake/project-structure.cmake)
-include(cmake/build-options.cmake)
+add_subdirectory(apps)
+add_subdirectory(cmake)
+add_subdirectory(libs)
 
-configure_admin_executable()
-configure_downstream_executable()
-configure_pretreatment_executable()
-configure_residential_executable()
-configure_stormdrain_executable()
-configure_treatment_executable()
+configure_executable()
 
 # *** end of file ***

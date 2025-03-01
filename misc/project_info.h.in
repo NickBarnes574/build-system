@@ -1,5 +1,5 @@
-#ifndef PROJECT_CONFIG_H_IN
-#define PROJECT_CONFIG_H_IN
+#ifndef PROJECT_INFO_H_IN
+#define PROJECT_INFO_H_IN
 
 #include <stdint.h>
 #include <stdio.h>
