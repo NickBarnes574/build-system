@@ -1,0 +1,5 @@
+add_subdirectory(Common)
+add_subdirectory(DSA)
+add_subdirectory(Math)
+add_subdirectory(Networking)
+add_subdirectory(Threading)
