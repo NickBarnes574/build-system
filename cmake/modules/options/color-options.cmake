@@ -8,15 +8,29 @@
 # - Implements `message_color` function to display messages with color
 #   based on message type (e.g., STATUS, WARNING, FATAL_ERROR)
 # - Supports optional custom colors for STATUS messages
+# - Detects ANSI color support and enables/disabled it accordingly
 #
 # Usage:
-# - Use `message_color` instead of `message` for colorized console output
+# - Use `message_color(<type> <message>)` for colorized console output
+# - Example: `message_color(WARNING "This is a warning!")`
+#
+# Notes:
+# - Windows systems require ANSI color support (use -DUSE_ANSI_COLORS=ON)
+# - If unsupported, messages default to standard `message()`
 # ----------------------------------------------------------------------------
 
 # SOURCE:
 # https://stackoverflow.com/questions/18968979/how-to-make-colorized-message-with-cmake
 
-if(NOT WIN32)
+if(NOT DEFINED USE_ANSI_COLORS)
+    if(WIN32)
+        set(USE_ANSI_COLORS OFF)
+    else()
+        set(USE_ANSI_COLORS ON)
+    endif()
+endif()
+
+if(USE_ANSI_COLORS)
     string(ASCII 27 Esc)
     set(ColourReset "${Esc}[m")
     set(ColourBold "${Esc}[1m")
@@ -36,58 +50,42 @@ if(NOT WIN32)
     set(BoldWhite "${Esc}[1;37m")
 endif()
 
-# Custom message function with optional color for STATUS messages
 function(message_color)
-    set(options
-        FATAL_ERROR
-        SEND_ERROR
-        WARNING
-        STATUS
-        AUTHOR_WARNING)
+    set(options FATAL_ERROR SEND_ERROR WARNING STATUS AUTHOR_WARNING)
     set(MessageType STATUS) # Default message type
-    set(colored_text "${ARGV}")
+    set(Color "${Green}")   # Default STATUS message color
 
-    # Check if the first argument matches a message type
-    list(
-        FIND
-        options
-        "${ARGV0}"
-        index)
+    list(FIND options "${ARGV0}" index)
     if(index GREATER -1)
         set(MessageType "${ARGV0}")
         list(REMOVE_AT ARGV 0)
-        set(colored_text "${ARGV}")
     endif()
 
-    # Handle custom color for STATUS messages
-    set(Color "${Green}") # Default color for STATUS messages
-    if(MessageType STREQUAL STATUS)
-        # Check if a color argument was passed
-        if(ARGC GREATER 1)
-            list(
-                GET
-                ARGV
-                0
-                CustomColor)
-            if(DEFINED ${CustomColor})
-                set(Color "${${CustomColor}}")
-                list(REMOVE_AT ARGV 0)
-                set(colored_text "${ARGV}")
-            endif()
+    # Check if a color argument was passed for STATUS messages
+    if(MessageType STREQUAL STATUS AND ARGC GREATER 1)
+        list(GET ARGV 0 CustomColor)
+        if(DEFINED ${CustomColor})
+            set(Color "${${CustomColor}}")
+            list(REMOVE_AT ARGV 0)
         endif()
     endif()
 
-    # Determine color based on message type
-    if(MessageType STREQUAL FATAL_ERROR OR MessageType STREQUAL SEND_ERROR)
-        message(${MessageType} "${BoldRed}${colored_text}${ColourReset}")
-    elseif(MessageType STREQUAL WARNING)
-        message(${MessageType} "${BoldYellow}${colored_text}${ColourReset}")
-    elseif(MessageType STREQUAL AUTHOR_WARNING)
-        message(${MessageType} "${BoldCyan}${colored_text}${ColourReset}")
-    elseif(MessageType STREQUAL STATUS)
-        message(${MessageType} "${Color}${colored_text}${ColourReset}")
+    # Print messages with appropriate colors
+    if(USE_ANSI_COLORS)
+        if(MessageType STREQUAL FATAL_ERROR OR MessageType STREQUAL SEND_ERROR)
+            message(${MessageType} "${BoldRed}${ARGV}${ColourReset}")
+        elseif(MessageType STREQUAL WARNING)
+            message(${MessageType} "${BoldYellow}${ARGV}${ColourReset}")
+        elseif(MessageType STREQUAL AUTHOR_WARNING)
+            message(${MessageType} "${BoldCyan}${ARGV}${ColourReset}")
+        elseif(MessageType STREQUAL STATUS)
+            message(${MessageType} "${Color}${ARGV}${ColourReset}")
+        else()
+            message("${ARGV}")
+        endif()
     else()
-        # Default behavior for other messages
-        message("${colored_text}")
+        message(${MessageType} "${ARGV}")
     endif()
 endfunction()
+
+# *** END OF FILE ***

@@ -3,11 +3,19 @@
 # ----------------------------------------------------------------------------
 # Top-level CMake configuration (C, version 1.0.0).
 #
-# Features: - C17 standard - Includes CMake modules for color, clang-tidy, and
-# build options - Defines library and optional executable targets - Configurable
-# options: static analysis, warnings as errors, AddressSanitizer
+# Features:
+# - C17 standard with strict compliance
+# - Modular CMake structure for colorized output, static analysis, and build options
+# - Feature toggles: static analysis, warnings as errors, AddressSanitizer
+# - Supports dynamic/static library builds
 #
-# Usage: - Configure and build with provided Makefile
+# Usage:
+# - Configure and build using the provided Makefile
+# - Enable optional features using `-D<OPTION>=ON` flags
+#
+# TODO:
+# - Add options for clang-format and cmake-format
+# - Improve shared library installation and linking
 # ----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.22)
@@ -25,13 +33,13 @@ set(CMAKE_C_EXTENSIONS        OFF)
 # Define executable name
 set(EXECUTABLE_NAME         my_program)
 
-# Set common compile flags regardless of configuration type
-set(FLAGS_COMMON -std=c17 -Wall -Wextra -pedantic)
+# Set universal compile options indedpentent of configuration type
+add_compile_options(-Wall -Wextra -pedantic)
 
-# Set configuration specific compile flags
-set(FLAGS_DEBUG -g -Werror -DDEBUG)
-set(FLAGS_RELEASE -O3 -DNDEBUG)
-set(FLAGS_TEST -g)
+# Configuration specific compile options
+set(CMAKE_C_FLAGS_DEBUG "-g -Werror -DDEBUG")
+set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
+set(CMAKE_C_FLAGS_TEST "-g")
 
 # Feature Toggles
 option(COMPILE_EXECUTABLE "Compile the executable"            ON)
@@ -40,11 +48,6 @@ option(ENABLE_WARN_AS_ERR "Treat all warnings as errors"      OFF)
 option(ENABLE_ADSAN       "Enable Address-Sanitizer"          OFF)
 option(STRIP_TARGET       "Strip all symbols from release"    ON)
 option(BUILD_SHARED_LIBS  "Build dynamic library (.so) files" OFF)
-
-#TODO: add option to run clang-tidy on libraries and/or executables
-#TODO: add option to run clang-format without need for VS Code extensions
-#TODO: add option to run cmake-format
-#TODO: fix shared libraries installation and linking
 
 include(cmake/modules/options/color-options.cmake)
 include(cmake/modules/options/build-options.cmake)
@@ -63,3 +66,5 @@ add_subdirectory(libs)
 configure_executable()
 
 message_color(STATUS "Building for ARCH: ${ARCH}, Mode: ${CMAKE_BUILD_TYPE}")
+
+# *** END OF FILE ***

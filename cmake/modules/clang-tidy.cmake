@@ -7,9 +7,12 @@
 # - Defines suppressed clang-tidy checks to tailor analysis for project needs
 # - Enables clang-tidy if specified via ENABLE_CLANG_TIDY option
 # - Optionally treats warnings as errors in Debug builds or if enabled
+# - Allows specifying a custom clang-tidy binary via CMAKE_C_CLANG_TIDY_PATH
 #
 # Usage:
 # - Adjust suppressed checks in CLANG_TIDY_SUPPRESSED_CHECKS as needed
+# - Enable via -DENABLE_CLANG_TIDY=ON
+# - Override clang-tidy path with -DCMAKE_C_CLANG_TIDY_PATH=<path>
 # ----------------------------------------------------------------------------
 
 # Define clang-tidy checks
@@ -33,12 +36,19 @@ string(
 )
 
 # Clang-tidy setup
-find_program(CLANG_TIDY_PROG clang-tidy)
+if(NOT CLANG_TIDY_PROG)
+    find_program(CLANG_TIDY_PROG NAMES ${CMAKE_C_CLANG_TIDY_PATH} clang-tidy)
+endif()
 
-if(ENABLE_CLANG_TIDY AND CLANG_TIDY_PROG)
-    set(CMAKE_C_CLANG_TIDY
-        "${CLANG_TIDY_PROG};-checks=${CLANG_TIDY_SUPPRESSED_CHECKS}")
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR ENABLE_WARN_AS_ERR)
-        set(CMAKE_C_CLANG_TIDY "${CMAKE_C_CLANG_TIDY};-warnings-as-errors=*")
+if(ENABLE_CLANG_TIDY)
+    if(CLANG_TIDY_PROG)
+        set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY_PROG};-checks=${CLANG_TIDY_SUPPRESSED_CHECKS}")
+        if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR ENABLE_WARN_AS_ERR)
+            set(CMAKE_C_CLANG_TIDY "${CMAKE_C_CLANG_TIDY};-warnings-as-errors=*")
+        endif()
+    else()
+        message_color(WARNING "Clang-Tidy not found, but ENABLE_CLANG_TIDY is ON.")
     endif()
 endif()
+
+# *** END OF FILE ***
