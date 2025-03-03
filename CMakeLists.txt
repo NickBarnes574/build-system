@@ -25,6 +25,14 @@ set(CMAKE_C_EXTENSIONS        OFF)
 # Define executable name
 set(EXECUTABLE_NAME         my_program)
 
+# Set common compile flags regardless of configuration type
+set(FLAGS_COMMON -std=c17 -Wall -Wextra -pedantic)
+
+# Set configuration specific compile flags
+set(FLAGS_DEBUG -g -Werror -DDEBUG)
+set(FLAGS_RELEASE -O3 -DNDEBUG)
+set(FLAGS_TEST -g)
+
 # Feature Toggles
 option(COMPILE_EXECUTABLE "Compile the executable"            ON)
 option(ENABLE_CLANG_TIDY  "Enable clang-tidy static analysis" ON)
@@ -39,10 +47,13 @@ option(BUILD_SHARED_LIBS  "Build dynamic library (.so) files" OFF)
 #TODO: fix shared libraries installation and linking
 
 include(cmake/modules/options/color-options.cmake)
+include(cmake/modules/options/build-options.cmake)
 include(cmake/modules/clang-tidy.cmake)
 include(cmake/modules/detect-arch.cmake)
 include(cmake/modules/output-directories.cmake)
 include(cmake/modules/project-structure.cmake)
+
+set_build_preferences()
 
 # Include project structure and libraries
 add_subdirectory(apps)

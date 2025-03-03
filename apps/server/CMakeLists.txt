@@ -1,3 +1,5 @@
+include(${CMAKE_SOURCE_DIR}/cmake/modules/options/build-options.cmake)
+
 set(EXE_SOURCES "src/main.c" "src/option_handler.c")
 set(EXE_INCLUDES "include/option_handler.h")
 
@@ -5,6 +7,7 @@ add_executable(${EXECUTABLE_NAME} ${EXE_SOURCES} ${EXE_INCLUDES})
 
 target_include_directories(${EXECUTABLE_NAME}
                            PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 target_link_libraries(
   ${EXECUTABLE_NAME} PUBLIC Common DSA Math Networking Threading)
 

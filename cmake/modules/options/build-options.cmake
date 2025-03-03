@@ -7,34 +7,41 @@
 
 include(${CMAKE_CURRENT_LIST_DIR}/color-options.cmake)
 
-# Default to Release mode if not set
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type (default: Release)" FORCE)
-endif()
+function(set_build_preferences)
+    # Default to Release mode if not set
+    if(NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE Release)
+    endif()
 
-# Common compile options
-set(COMMON_COMPILE_OPTIONS
-    -std=c17
-    -Wall
-    -Wextra
-    -pedantic)
+    # Ensure flags are treated as proper lists (users define them without quotes)
+    set(CMAKE_C_FLAGS_COMMON ${FLAGS_COMMON})
+    set(CMAKE_C_FLAGS_DEBUG ${FLAGS_DEBUG})
+    set(CMAKE_C_FLAGS_RELEASE ${FLAGS_RELEASE})
+    set(CMAKE_C_FLAGS_TEST ${FLAGS_TEST})
 
-add_compile_options(${COMMON_COMPILE_OPTIONS})
+    foreach(flag ${CMAKE_C_FLAGS_COMMON})
+        add_compile_options(${flag})
+    endforeach()
+    
+    add_compile_options()
 
-# Set build-type specific flags
-set(CMAKE_C_FLAGS_DEBUG    "-g -Werror -DDEBUG" CACHE STRING "Debug build flags" FORCE)
-set(CMAKE_C_FLAGS_RELEASE  "-O3 -DNDEBUG" CACHE STRING "Release build flags" FORCE)
-set(CMAKE_C_FLAGS_TEST     "-g" CACHE STRING "Test build flags" FORCE)
+    # Apply flags per configuration (Properly expanded)
+    foreach(flag ${CMAKE_C_FLAGS_DEBUG})
+        add_compile_options($<$<CONFIG:Debug>:${flag}>)
+    endforeach()
 
-# Ensure the correct flag variable is used by explicitly setting it
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}")
-elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE}")
-elseif(CMAKE_BUILD_TYPE STREQUAL "Test")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_TEST}")
-endif()
+    foreach(flag ${CMAKE_C_FLAGS_RELEASE})
+        add_compile_options($<$<CONFIG:Release>:${flag}>)
+    endforeach()
 
-# Display build type
-message_color(STATUS "*** Building in ${CMAKE_BUILD_TYPE} mode ***")
-message_color(STATUS "*** FLAGS - ${CMAKE_C_FLAGS} ***")
+    foreach(flag ${CMAKE_C_FLAGS_TEST})
+        add_compile_options($<$<CONFIG:Test>:${flag}>)
+    endforeach()
+
+    # Display build type
+    message_color(STATUS "*** Building in ${CMAKE_BUILD_TYPE} mode ***")
+    message_color(STATUS "*** Common FLAGS: ${CMAKE_C_FLAGS_COMMON} ***")
+    message_color(STATUS "*** Debug FLAGS: ${CMAKE_C_FLAGS_DEBUG} ***")
+    message_color(STATUS "*** Release FLAGS: ${CMAKE_C_FLAGS_RELEASE} ***")
+    message_color(STATUS "*** Test FLAGS: ${CMAKE_C_FLAGS_TEST} ***")
+endfunction()
