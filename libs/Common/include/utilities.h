@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h> // strchr()
 
 // Exit codes
 #define E_SUCCESS           0
@@ -61,10 +62,11 @@ typedef enum
     } while (0);
 
 #else
-#define PRINT_DEBUG(...)     \
-    do                       \
-    {                        \
-        printf(__VA_ARGS__); \
+#define PRINT_DEBUG(...)              \
+    do                                \
+    {                                 \
+        printf(__VA_ARGS__);          \
+        printf("NOT IN DEBUG MODE!"); \
     } while (0);
 
 #endif // DEBUG

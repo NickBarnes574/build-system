@@ -1,12 +1,15 @@
-set(LIBRARY_SOURCES
-    "src/number_converter.c"
-    "src/number_generator.c")
-    
-set(LIBRARY_INCLUDES
-    "include/number_converter.h"
-    "include/number_generator.h")
+add_library(Math
+    src/number_converter.c
+    src/number_generator.c
+)
 
-add_library(${LIB_MATH} STATIC ${LIBRARY_SOURCES} ${LIBRARY_INCLUDES})
-target_include_directories(${LIB_MATH} PUBLIC "include/" "${CMAKE_BINARY_DIR}/config_files/include")
+# Specify include directories
+target_include_directories(Math PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
 
-target_link_libraries(${LIB_MATH} PUBLIC ${LIB_COMMON})
+# Link dependencies
+target_link_libraries(Math PUBLIC Common)
+
+# Set the required C standard
+target_compile_features(Math PUBLIC c_std_17)

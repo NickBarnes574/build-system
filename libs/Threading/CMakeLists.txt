@@ -1,10 +1,14 @@
-set(LIBRARY_SOURCES
-    "src/threadpool.c")
-    
-set(LIBRARY_INCLUDES
-    "include/threadpool.h")
+add_library(Threading
+    src/threadpool.c
+)
 
-add_library(${LIB_THREADING} STATIC ${LIBRARY_SOURCES} ${LIBRARY_INCLUDES})
-target_include_directories(${LIB_THREADING} PUBLIC "include/" "${CMAKE_BINARY_DIR}/config_files/include")
+# Specify include directories
+target_include_directories(Threading PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
 
-target_link_libraries(${LIB_THREADING} PUBLIC ${LIB_COMMON} ${LIB_DSA} pthread)
+# Link dependencies
+target_link_libraries(Threading PUBLIC Common DSA pthread)
+
+# Set the required C standard
+target_compile_features(Threading PUBLIC c_std_17)

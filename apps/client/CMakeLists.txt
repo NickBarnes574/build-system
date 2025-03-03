@@ -22,8 +22,42 @@ set(CMAKE_C_STANDARD          17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS        OFF)
 
+# Define library names
+set(LIB_COMMON      Common)
+set(LIB_DSA         DSA)
+set(LIB_MATH        Math)
+set(LIB_NETWORKING  Networking)
+set(LIB_THREADING   Threading)
+
 # Define executable name
 set(EXECUTABLE_NAME         my_program)
+
+# Default build type (Release if unspecified)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose build type: Debug, Release" FORCE)
+endif()
+
+# Detect architecture (override with -DARCH=<value>)
+if(NOT DEFINED ARCH)
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
+        set(ARCH aarch64)
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
+        set(ARCH x86_64)
+    else()
+        message(FATAL_ERROR "Unknown architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
+endif()
+
+# Set toolchain for cross-compilation (only if building for ARM)
+if(ARCH STREQUAL "aarch64")
+    set(AARCH64_TOOLCHAIN "${CMAKE_SOURCE_DIR}/cmake/toolchains/aarch64-glibc-toolchain.cmake")
+    set(CMAKE_TOOLCHAIN_FILE ${AARCH64_TOOLCHAIN} CACHE STRING "Toolchain file" FORCE)
+endif()
+
+# Output directories
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/remote/${ARCH})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
 
 # Feature Toggles
 option(COMPILE_EXECUTABLE "Compile the executable"            ON)
@@ -31,18 +65,6 @@ option(ENABLE_CLANG_TIDY  "Enable clang-tidy static analysis" ON)
 option(ENABLE_WARN_AS_ERR "Treat all warnings as errors"      OFF)
 option(ENABLE_ADSAN       "Enable Address-Sanitizer"          OFF)
 option(STRIP_TARGET       "Strip all symbols from release"    ON)
-option(BUILD_SHARED_LIBS  "Build dynamic library (.so) files" OFF)
-
-#TODO: add option to run clang-tidy on libraries and/or executables
-#TODO: add option to run clang-format without need for VS Code extensions
-#TODO: add option to run cmake-format
-#TODO: fix shared libraries installation and linking
-
-include(cmake/modules/options/color-options.cmake)
-include(cmake/modules/clang-tidy.cmake)
-include(cmake/modules/detect-arch.cmake)
-include(cmake/modules/output-directories.cmake)
-include(cmake/modules/project-structure.cmake)
 
 # Include project structure and libraries
 add_subdirectory(apps)
@@ -51,4 +73,4 @@ add_subdirectory(libs)
 
 configure_executable()
 
-message_color(STATUS "Building for ARCH: ${ARCH}, Mode: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Building for ARCH: ${ARCH}, Mode: ${CMAKE_BUILD_TYPE}")

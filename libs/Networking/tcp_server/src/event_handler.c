@@ -224,7 +224,8 @@ END:
 
 int process_job(int client_fd)
 {
-    return 0;
+    (void)client_fd;
+    return -1;
 }
 
 void * process_client_request(void * arg)

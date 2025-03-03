@@ -1,0 +1,5 @@
+# Set toolchain for cross-compilation (only if building for ARM)
+if(ARCH STREQUAL "aarch64")
+    set(AARCH64_TOOLCHAIN "${CMAKE_SOURCE_DIR}/cmake/toolchains/aarch64-glibc-toolchain.cmake")
+    set(CMAKE_TOOLCHAIN_FILE ${AARCH64_TOOLCHAIN} CACHE STRING "Toolchain file" FORCE)
+endif()

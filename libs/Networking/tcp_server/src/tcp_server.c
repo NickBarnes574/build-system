@@ -73,7 +73,14 @@ int start_tcp_server(server_config_t * config)
 
     if (NULL == config)
     {
-        print_error("start_tcp_server(): NULL argument passed.");
+        PRINT_DEBUG("start_tcp_server(): NULL argument passed.\n");
+        goto END;
+    }
+
+    if (NULL == config->client_request)
+    {
+        PRINT_DEBUG(
+            "start_tcp_server(): No client request function provided.\n");
         goto END;
     }
 
@@ -81,19 +88,19 @@ int start_tcp_server(server_config_t * config)
     log_system_info();
     message_log("INFO", COLOR_NONE, LOG_BOTH, "TCP server: version 1.0.0");
     message_log(
-        "INFO", COLOR_NONE, LOG_BOTH, "Loading configuration settings...");
+        "INFO", COLOR_NONE, LOG_BOTH, "Loading configuration settings...\n");
 
     exit_code = validate_config(config);
     if (E_SUCCESS != exit_code)
     {
-        print_error("start_tcp_server(): Error validating server config.");
+        PRINT_DEBUG("start_tcp_server(): Error validating server config.\n");
         goto END;
     }
 
     thread_pool = threadpool_create(config->num_threads);
     if (NULL == thread_pool)
     {
-        print_error("start_tcp_server(): Unable to create thread pool.");
+        PRINT_DEBUG("start_tcp_server(): Unable to create thread pool.\n");
         goto END;
     }
 
@@ -101,22 +108,25 @@ int start_tcp_server(server_config_t * config)
     server.thread_pool = thread_pool;
     server.config      = config;
 
-    message_log("INFO", COLOR_NONE, LOG_BOTH, "Initializing server...");
+    message_log("INFO", COLOR_NONE, LOG_BOTH, "Initializing server...\n");
 
     exit_code = initialize_server(&server);
     if (E_SUCCESS != exit_code)
     {
-        print_error("start_tcp_server(): Unable to initialize server.");
+        PRINT_DEBUG("start_tcp_server(): Unable to initialize server.\n");
         goto END;
     }
 
-    message_log(
-        "INFO", COLOR_NONE, LOG_BOTH, "Listening on port: %s...", config->port);
+    message_log("INFO",
+                COLOR_NONE,
+                LOG_BOTH,
+                "Listening on port: %s...\n",
+                config->port);
 
     exit_code = run_server_loop(&server);
     if (E_SUCCESS != exit_code)
     {
-        print_error("start_tcp_server(): Error running server loop.");
+        PRINT_DEBUG("start_tcp_server(): Error running server loop.\n");
         goto END;
     }
 
@@ -136,7 +146,7 @@ static int run_server_loop(server_context_t * server)
 
     if ((NULL == server) || (NULL == server->sock_mgr))
     {
-        print_error("run_server_loop(): NULL argument passed.");
+        PRINT_DEBUG("run_server_loop(): NULL argument passed.\n");
         goto END;
     }
 
@@ -148,7 +158,7 @@ static int run_server_loop(server_context_t * server)
             message_log("INFO",
                         COLOR_RED,
                         LOG_BOTH,
-                        "Shutdown signal received, shutting down...");
+                        "Shutdown signal received, shutting down...\n");
             exit_code = E_SUCCESS;
             goto END;
         }
@@ -171,7 +181,7 @@ static int run_server_loop(server_context_t * server)
                 continue;
             }
 
-            perror("run_server_loop(): poll() failed.");
+            perror("run_server_loop(): poll() failed.\n");
             goto END;
         }
 
@@ -184,7 +194,7 @@ static int run_server_loop(server_context_t * server)
         exit_code = handle_connections(server);
         if (E_SUCCESS != exit_code)
         {
-            print_error("run_server_loop(): handle_connections() failed.");
+            PRINT_DEBUG("run_server_loop(): handle_connections() failed.\n");
             goto END;
         }
     }
@@ -203,7 +213,7 @@ static int initialize_server(server_context_t * server)
 
     if (NULL == server)
     {
-        print_error("initialize_server(): NULL argument passed.");
+        PRINT_DEBUG("initialize_server(): NULL argument passed.\n");
         goto END;
     }
 
@@ -225,7 +235,7 @@ static int initialize_server(server_context_t * server)
             gai_strerror(exit_code));
         if (E_SUCCESS != exit_code)
         {
-            print_error("initialize_server(): fprintf() error.");
+            PRINT_DEBUG("initialize_server(): fprintf() error.\n");
         }
         goto END;
     }
@@ -258,7 +268,7 @@ static int initialize_server(server_context_t * server)
     exit_code = set_fd_non_blocking(server->fd);
     if (E_SUCCESS != exit_code)
     {
-        print_error("register_client(): Unable to set fd to non-blocking.");
+        PRINT_DEBUG("register_client(): Unable to set fd to non-blocking.\n");
         close(server->fd);
         goto END;
     }
@@ -277,7 +287,8 @@ static int initialize_server(server_context_t * server)
                               DEFAULT_FD_CAPACITY);
     if (E_SUCCESS != exit_code)
     {
-        print_error("initialize_server(): Unable to initialize sock manager.");
+        PRINT_DEBUG(
+            "initialize_server(): Unable to initialize sock manager.\n");
         goto END;
     }
 
@@ -293,14 +304,14 @@ static int validate_config(server_config_t * config)
 
     if (NULL == config)
     {
-        print_error("validate_config(): NULL argument passed.");
+        PRINT_DEBUG("validate_config(): NULL argument passed.\n");
         goto END;
     }
 
     exit_code = str_to_int32(config->port, &port);
     if (E_SUCCESS != exit_code)
     {
-        print_error("validate_config(): Unable to convert port to integer.");
+        PRINT_DEBUG("validate_config(): Unable to convert port to integer.\n");
         goto END;
     }
     exit_code = E_FAILURE;
@@ -308,41 +319,41 @@ static int validate_config(server_config_t * config)
     // Check for well-known ports
     if ((0 <= port) && (WELL_KNOWN_PORT_MAX >= port))
     {
-        print_error("validate_config(): Well-known port detected.");
+        PRINT_DEBUG("validate_config(): Well-known port detected.\n");
         goto END;
     }
 
     if ((MIN_BACKLOG > config->backlog_size) ||
         (MAX_BACKLOG < config->backlog_size))
     {
-        print_error("validate_config(): Invalid backlog size.");
+        PRINT_DEBUG("validate_config(): Invalid backlog size.\n");
         goto END;
     }
 
     if ((-1 != config->timeout) &&
         ((MIN_TIMEOUT > config->timeout) || (MAX_TIMEOUT < config->timeout)))
     {
-        print_error("validate_config(): Invalid server timeout.");
+        PRINT_DEBUG("validate_config(): Invalid server timeout.\n");
         goto END;
     }
 
     if ((MIN_NUM_THREADS > config->num_threads) ||
         (MAX_NUM_THREADS < config->num_threads))
     {
-        print_error("validate_config(): Invalid number of threads.");
+        PRINT_DEBUG("validate_config(): Invalid number of threads.\n");
         goto END;
     }
 
     if ((MIN_CLIENTS > config->max_clients) ||
         (MAX_CLIENTS < config->max_clients))
     {
-        print_error("validate_config(): Invalid number of maximum clients.");
+        PRINT_DEBUG("validate_config(): Invalid number of maximum clients.\n");
         goto END;
     }
 
     if (NULL == config->client_request)
     {
-        print_error("validate_config(): NULL client request function.");
+        PRINT_DEBUG("validate_config(): NULL client request function.\n");
         goto END;
     }
 
